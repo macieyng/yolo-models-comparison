@@ -1,0 +1,88 @@
+# YOLO Model Comparison Configuration
+
+# Dataset Configuration
+dataset:
+  num_images: 100
+  image_size: 640
+  class_names: ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+                'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+                'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+                'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+                'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+                'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+                'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+                'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear',
+                'hair drier', 'toothbrush']
+  num_classes: 80
+
+# Model Configurations
+models:
+  yolov6:
+    name: "YOLOv6"
+    variants: ["yolov6n", "yolov6s", "yolov6m", "yolov6l"]
+    repo_url: "https://github.com/meituan/YOLOv6.git"
+    weight_urls:
+      yolov6n: "https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6n.pt"
+      yolov6s: "https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6s.pt"
+      yolov6m: "https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6m.pt"
+      yolov6l: "https://github.com/meituan/YOLOv6/releases/download/0.4.0/yolov6l.pt"
+    input_size: [640, 640]
+    
+  ppyoloe:
+    name: "PP-YOLOE"
+    variants: ["ppyoloe_s", "ppyoloe_m", "ppyoloe_l"]
+    repo_url: "https://github.com/PaddlePaddle/PaddleDetection.git"
+    weight_urls:
+      ppyoloe_s: "https://paddledet.bj.bcebos.com/models/ppyoloe_crn_s_400e_coco.pdparams"
+      ppyoloe_m: "https://paddledet.bj.bcebos.com/models/ppyoloe_crn_m_400e_coco.pdparams"
+      ppyoloe_l: "https://paddledet.bj.bcebos.com/models/ppyoloe_crn_l_400e_coco.pdparams"
+    input_size: [640, 640]
+    
+  yolox:
+    name: "YOLOX"
+    variants: ["yolox_nano", "yolox_tiny", "yolox_s", "yolox_m", "yolox_l", "yolox_x"]
+    repo_url: "https://github.com/Megvii-BaseDetection/YOLOX.git"
+    weight_urls:
+      yolox_nano: "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_nano.pth"
+      yolox_tiny: "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_tiny.pth"
+      yolox_s: "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth"
+      yolox_m: "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth"
+      yolox_l: "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth"
+      yolox_x: "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_x.pth"
+    input_size: [640, 640]
+    
+  yolov3:
+    name: "YOLOv3"
+    variants: ["yolov3"]
+    repo_url: "https://github.com/DeNA/PyTorch_YOLOv3.git"
+    weight_urls:
+      yolov3: "https://pjreddie.com/media/files/yolov3.weights"
+    input_size: [416, 416]
+    
+  yolov11:
+    name: "YOLOv11"
+    variants: ["yolov11n", "yolov11s", "yolov11m", "yolov11l"]
+    repo_url: "https://github.com/ultralytics/ultralytics.git"
+    weight_urls:
+      yolov11n: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov11n.pt"
+      yolov11s: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov11s.pt"
+      yolov11m: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov11m.pt"
+      yolov11l: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov11l.pt"
+    input_size: [640, 640]
+
+# Evaluation Configuration
+evaluation:
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  max_detections: 300
+  metrics: ["precision", "recall", "mAP50", "mAP50-95", "fps", "params", "gflops"]
+  save_predictions: true
+  save_visualizations: true
+
+# Comparison Configuration
+comparison:
+  generate_report: true
+  create_charts: true
+  save_individual_results: true
+  output_format: ["json", "csv", "html"]
+  visualization_types: ["bar_chart", "radar_chart", "scatter_plot", "heatmap"]
