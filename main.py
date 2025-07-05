@@ -70,7 +70,7 @@ def download_and_prepare_models(config: Dict[str, Any], weights_dir: str,
 
 
 def setup_test_data(config: Dict[str, Any], directories: Dict[str, str], 
-                   logger: logging.Logger) -> tuple:
+                   logger: logging.Logger, custom_image_dir: str = None) -> tuple:
     """Set up test data (images and annotations)."""
     logger.info("Setting up test data...")
     
@@ -81,12 +81,23 @@ def setup_test_data(config: Dict[str, Any], directories: Dict[str, str],
     # Create image data loader
     image_loader = ImageDataLoader()
     
-    # Check if images exist, if not create sample images
-    images_dir = directories['images']
+    # Use custom image directory if provided, otherwise use default
+    if custom_image_dir is not None and os.path.exists(custom_image_dir):
+        images_dir = custom_image_dir
+        logger.info(f"Using custom image directory: {images_dir}")
+    else:
+        images_dir = directories['images']
+        logger.info(f"Using default image directory: {images_dir}")
+    
+    # Check if images exist, if not create sample images (only for default directory)
     if not os.path.exists(images_dir) or len(os.listdir(images_dir)) == 0:
-        logger.info("No images found, downloading sample images...")
-        downloaded_paths = image_loader.download_sample_images(images_dir, num_images)
-        logger.info(f"Downloaded {len(downloaded_paths)} sample images")
+        if custom_image_dir:
+            logger.error(f"Custom image directory '{custom_image_dir}' is empty or does not exist")
+            raise ValueError(f"Custom image directory '{custom_image_dir}' is empty or does not exist")
+        else:
+            logger.info("No images found, downloading sample images...")
+            downloaded_paths = image_loader.download_sample_images(images_dir, num_images)
+            logger.info(f"Downloaded {len(downloaded_paths)} sample images")
     
     # Load images
     image_data = image_loader.load_images_from_directory(images_dir, limit=num_images)
@@ -262,13 +273,13 @@ def run_model_evaluation(models: List[BaseYOLOModel], image_data: List[tuple],
 
 def save_results(results: Dict[str, Any], comparator: PerformanceComparator, 
                 directories: Dict[str, str], config: Dict[str, Any], 
-                logger: logging.Logger):
+                logger: logging.Logger, custom_output_file: str = None):
     """Save all results and generate reports."""
     logger.info("Saving results...")
     
     results_dir = directories['results']
     
-    # Save individual model results
+    # Save individual model results (always save to default location)
     for model_name, model_results in results.items():
         output_file = os.path.join(results_dir, f"{model_name.replace(' ', '_')}_results.json")
         with open(output_file, 'w') as f:
@@ -287,6 +298,48 @@ def save_results(results: Dict[str, Any], comparator: PerformanceComparator,
     html_report = generate_html_report(comparison_report, results)
     with open(os.path.join(results_dir, 'comparison_report.html'), 'w') as f:
         f.write(html_report)
+    
+    # Handle custom output file if specified
+    if custom_output_file is not None:
+        logger.info(f"Saving custom output to: {custom_output_file}")
+        custom_output_dir = os.path.dirname(custom_output_file)
+        if custom_output_dir:
+            os.makedirs(custom_output_dir, exist_ok=True)
+        
+        # Determine output format based on file extension
+        file_ext = os.path.splitext(custom_output_file)[1].lower()
+        
+        if file_ext == '.json':
+            # Save combined results as JSON
+            combined_results = {
+                'comparison_report': comparison_report,
+                'model_results': results,
+                'config': config
+            }
+            with open(custom_output_file, 'w') as f:
+                json.dump(combined_results, f, indent=2)
+                
+        elif file_ext == '.csv':
+            # Save comparison summary as CSV
+            comparator.save_results_csv(custom_output_file)
+            
+        elif file_ext == '.html':
+            # Save HTML report
+            with open(custom_output_file, 'w') as f:
+                f.write(html_report)
+                
+        else:
+            # Default to JSON format
+            logger.warning(f"Unknown output format '{file_ext}', defaulting to JSON")
+            combined_results = {
+                'comparison_report': comparison_report,
+                'model_results': results,
+                'config': config
+            }
+            with open(custom_output_file, 'w') as f:
+                json.dump(combined_results, f, indent=2)
+        
+        logger.info(f"Custom output saved to: {custom_output_file}")
     
     logger.info("Results saved successfully")
 
@@ -388,6 +441,10 @@ def main():
                        help='Path to configuration file')
     parser.add_argument('--output-dir', '-o', type=str, default='./results',
                        help='Output directory for results')
+    parser.add_argument('--image-dir', '--image_dir', type=str, default=None,
+                       help='Directory containing images for inference')
+    parser.add_argument('--output', type=str, default=None,
+                       help='Output file path for results (supports .json, .csv, .html)')
     parser.add_argument('--verbose', '-v', action='store_true',
                        help='Verbose logging')
     
@@ -414,7 +471,7 @@ def main():
         weight_paths = download_and_prepare_models(config, directories['weights'], logger)
         
         # Setup test data
-        image_data, coco_dataset = setup_test_data(config, directories, logger)
+        image_data, coco_dataset = setup_test_data(config, directories, logger, args.image_dir)
         
         # Create model instances
         models = create_model_instances(config, weight_paths, logger)
@@ -427,7 +484,7 @@ def main():
         results, comparator = run_model_evaluation(models, image_data, coco_dataset, config, logger)
         
         # Save results
-        save_results(results, comparator, directories, config, logger)
+        save_results(results, comparator, directories, config, logger, args.output)
         
         logger.info("YOLO Model Comparison completed successfully!")
         logger.info(f"Results saved to: {directories['results']}")

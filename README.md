@@ -56,9 +56,32 @@ A comprehensive system for comparing different YOLO (You Only Look Once) object 
 
 ## Usage
 
+### Quick Start (Recommended)
+
+**Single Command with Custom Images:**
+```bash
+# Run comparison with your own images
+./run_yolo_comparison.sh /path/to/your/images results.html
+
+# Examples:
+./run_yolo_comparison.sh ~/Pictures/test_images output/report.html
+./run_yolo_comparison.sh ./test_images results.json
+./run_yolo_comparison.sh /data/images comparison.csv
+```
+
+The bash script will:
+- Validate your image directory and check for supported formats
+- Setup the environment and install dependencies automatically
+- Run the complete comparison on all YOLO models
+- Generate your requested output format (HTML, JSON, or CSV)
+- Display progress and results summary
+
+**Supported Input Formats:** `.jpg`, `.jpeg`, `.png`, `.bmp`, `.tiff`
+**Supported Output Formats:** `.html`, `.json`, `.csv`
+
 ### Basic Usage
 
-Run the complete comparison system:
+Run the complete comparison system with default synthetic images:
 ```bash
 python main.py
 ```
@@ -71,6 +94,11 @@ This will:
 5. Generate comprehensive reports
 
 ### Advanced Usage
+
+#### With Custom Images
+```bash
+python main.py --image-dir /path/to/images --output results.html
+```
 
 #### Custom Configuration
 ```bash
@@ -144,6 +172,38 @@ evaluation:
 - Mock model for testing when actual implementations aren't available
 - Support for different model architectures and weight formats
 
+### Bash Script Features
+
+The `run_yolo_comparison.sh` script provides:
+
+#### Automatic Setup
+- Validates Python 3 and pip3 installation
+- Installs required dependencies automatically
+- Creates necessary directories
+- Runs setup scripts if needed
+
+#### Input Validation
+- Checks if image directory exists and contains supported image files
+- Validates output file format and creates output directories
+- Provides clear error messages for common issues
+
+#### Progress Monitoring
+- Colored output for better readability
+- Progress indicators during execution
+- Execution time tracking
+- Results summary with file sizes
+
+#### Error Handling
+- Graceful error handling with informative messages
+- Automatic cleanup of temporary files
+- Proper exit codes for scripting
+
+#### Output Options
+- **HTML Report**: Interactive web-based comparison
+- **JSON Results**: Complete machine-readable data
+- **CSV Summary**: Spreadsheet-compatible format
+- Automatic format detection based on file extension
+
 ### Directory Structure
 ```
 yolo-model-comparison/
@@ -166,6 +226,8 @@ yolo-model-comparison/
 ├── logs/                      # System logs
 ├── main.py                    # Main execution script
 ├── setup.py                   # Setup script
+├── run_yolo_comparison.sh     # One-click execution script
+├── example_usage.sh           # Usage examples
 ├── requirements.txt           # Python dependencies
 └── README.md                  # This file
 ```
