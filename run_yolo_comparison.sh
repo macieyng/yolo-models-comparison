@@ -159,21 +159,21 @@ run_comparison() {
     # Create a temporary config file with the custom image directory
     local temp_config="temp_config.yaml"
     
-    # Check if main.py exists
-    if [[ ! -f "main.py" ]]; then
-        print_error "main.py not found. Please ensure you're in the correct directory."
+    # Check if inference_main.py exists
+    if [[ ! -f "inference_main.py" ]]; then
+        print_error "inference_main.py not found. Please ensure you're in the correct directory."
         return 1
     fi
     
     # Run the comparison
-    print_info "Running model comparison (this may take several minutes)..."
+    print_info "Running inference comparison (this may take several minutes)..."
     
     # Pass arguments to Python script
-    if python3 main.py --image_dir "$image_dir" --output "$output_file" --verbose; then
-        print_success "Model comparison completed successfully!"
+    if python3 inference_main.py --image-dir "$image_dir" --output "$output_file" --verbose; then
+        print_success "Inference comparison completed successfully!"
         return 0
     else
-        print_error "Model comparison failed"
+        print_error "Inference comparison failed"
         return 1
     fi
 }
