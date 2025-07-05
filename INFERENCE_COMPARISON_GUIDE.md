@@ -105,13 +105,18 @@ Each image gets a mosaic showing:
 - **YOLOX**: Anchor-free YOLO variant
 - **YOLOv3**: Classic YOLO model
 
+### 🎯 **Accurate Annotations**
+- **Percentage-based coordinates** for precise bounding box drawing
+- **50% minimum confidence** threshold for reliable detections
+- **Optimized for food detection** - especially hot dogs!
+
 ### 🎯 **Flexible Output**
 - Choose your preferred format (HTML/CSV/JSON)
 - Automatic format detection from file extension
 - Complete results always saved in `results/` directory
 
 ### 🔧 **Customizable**
-- Set confidence thresholds
+- Set confidence thresholds (default: 50%)
 - Limit number of images processed
 - Configure model variants
 - Adjust visualization parameters

@@ -72,7 +72,7 @@ models:
 
 # Evaluation Configuration
 evaluation:
-  confidence_threshold: 0.25
+  confidence_threshold: 0.5
   iou_threshold: 0.45
   max_detections: 300
   metrics: ["precision", "recall", "mAP50", "mAP50-95", "fps", "params", "gflops"]

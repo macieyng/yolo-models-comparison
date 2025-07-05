@@ -16,7 +16,7 @@ class MockYOLOModel(BaseYOLOModel):
     """Mock YOLO model for demonstration purposes."""
     
     def __init__(self, model_name: str, variant: str, weights_path: str, 
-                 input_size: Tuple[int, int], conf_threshold: float = 0.25, 
+                 input_size: Tuple[int, int], conf_threshold: float = 0.5, 
                  iou_threshold: float = 0.45, device: str = 'cuda'):
         """Initialize mock model."""
         super().__init__(model_name, variant, weights_path, input_size, 
@@ -117,41 +117,73 @@ class MockYOLOModel(BaseYOLOModel):
         detections = []
         
         # Number of detections varies by model complexity
-        max_detections = max(1, min(20, int(self.mock_params['params'] / 5_000_000)))
+        max_detections = max(1, min(15, int(self.mock_params['params'] / 5_000_000)))
         num_detections = random.randint(1, max_detections)
         
         original_height, original_width = original_shape
         
+        # COCO class names
+        class_names = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+                      'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+                      'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+                      'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+                      'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+                      'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+                      'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+                      'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear',
+                      'hair drier', 'toothbrush']
+        
+        # Hot dog is at index 52 in COCO dataset
+        hot_dog_class_id = 52
+        
         for i in range(num_detections):
-            # Random bounding box
-            x1 = random.randint(0, original_width - 100)
-            y1 = random.randint(0, original_height - 100)
-            x2 = random.randint(x1 + 50, min(x1 + 300, original_width))
-            y2 = random.randint(y1 + 50, min(y1 + 300, original_height))
+            # Generate bounding box in percentage coordinates (0.0 to 1.0)
+            # Center coordinates
+            center_x = random.uniform(0.1, 0.9)
+            center_y = random.uniform(0.1, 0.9)
             
-            # Random class and confidence
-            class_id = random.randint(0, 79)  # COCO has 80 classes
-            confidence = random.uniform(self.conf_threshold, 1.0)
+            # Width and height as percentages
+            bbox_width = random.uniform(0.05, 0.4)  # 5% to 40% of image width
+            bbox_height = random.uniform(0.05, 0.4)  # 5% to 40% of image height
             
-            # Mock class names (simplified)
-            class_names = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
-                          'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-                          'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
-                          'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
-                          'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-                          'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
-                          'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-                          'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear',
-                          'hair drier', 'toothbrush']
+            # Convert center format to top-left format (x, y, width, height)
+            x = max(0.0, center_x - bbox_width / 2)
+            y = max(0.0, center_y - bbox_height / 2)
+            
+            # Ensure bbox doesn't go outside image bounds
+            if x + bbox_width > 1.0:
+                bbox_width = 1.0 - x
+            if y + bbox_height > 1.0:
+                bbox_height = 1.0 - y
+            
+            # Bias toward detecting hot dogs (higher probability)
+            if random.random() < 0.6:  # 60% chance of hot dog
+                class_id = hot_dog_class_id
+                # Hot dogs get higher confidence
+                confidence = random.uniform(max(self.conf_threshold, 0.6), 0.95)
+            else:
+                # Other common food items and objects
+                food_classes = [47, 48, 49, 50, 51, 53, 54, 55]  # banana, apple, sandwich, orange, broccoli, pizza, donut, cake
+                common_classes = [0, 2, 15, 16, 56, 57, 59, 60, 61, 62]  # person, car, cat, dog, chair, couch, dining table, toilet, tv, laptop
+                
+                if random.random() < 0.4:  # 40% chance of food items
+                    class_id = random.choice(food_classes)
+                else:
+                    class_id = random.choice(common_classes)
+                
+                confidence = random.uniform(self.conf_threshold, 0.85)
             
             detection = {
-                'bbox': [x1, y1, x2, y2],
+                'bbox': [x, y, bbox_width, bbox_height],  # [x, y, width, height] in percentage coordinates
                 'confidence': confidence,
                 'class_id': class_id,
                 'class_name': class_names[class_id]
             }
             
             detections.append(detection)
+        
+        # Sort by confidence (highest first)
+        detections.sort(key=lambda x: x['confidence'], reverse=True)
         
         return detections
     

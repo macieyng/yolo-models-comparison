@@ -41,7 +41,7 @@ except ImportError:
 class InferenceComparator:
     """Compare inference results across different YOLO models."""
     
-    def __init__(self, class_names: List[str], confidence_threshold: float = 0.25):
+    def __init__(self, class_names: List[str], confidence_threshold: float = 0.5):
         """
         Initialize the inference comparator.
         
@@ -284,23 +284,39 @@ class InferenceComparator:
                 class_name = detection.get('class_name', 'unknown')
                 confidence = detection.get('confidence', 0.0)
                 
-                # Convert bbox format if needed (assuming [x, y, width, height])
-                x, y, w, h = bbox
-                
-                # Get color for this class
-                color = class_colors.get(class_name, 'red')
-                
-                # Draw bounding box
-                rect = patches.Rectangle(
-                    (x, y), w, h,
-                    linewidth=2, edgecolor=color, facecolor='none'
-                )
-                ax.add_patch(rect)
-                
-                # Add label
-                label = f"{class_name} ({confidence:.2f})"
-                ax.text(x, y - 5, label, fontsize=8, color=color, 
-                       bbox=dict(boxstyle="round,pad=0.3", facecolor='white', alpha=0.8))
+                # Convert bbox coordinates to proper format
+                if len(bbox) == 4:
+                    x, y, w, h = bbox
+                    
+                    # Check if coordinates are in percentage (0-1) or absolute pixels
+                    if x <= 1.0 and y <= 1.0 and w <= 1.0 and h <= 1.0:
+                        # Convert percentage coordinates to absolute pixels
+                        x = x * img_width
+                        y = y * img_height
+                        w = w * img_width
+                        h = h * img_height
+                    
+                    # Ensure coordinates are within image bounds
+                    x = max(0, min(x, img_width))
+                    y = max(0, min(y, img_height))
+                    w = max(1, min(w, img_width - x))
+                    h = max(1, min(h, img_height - y))
+                    
+                    # Get color for this class
+                    color = class_colors.get(class_name, 'red')
+                    
+                    # Draw bounding box
+                    rect = patches.Rectangle(
+                        (x, y), w, h,
+                        linewidth=2, edgecolor=color, facecolor='none'
+                    )
+                    ax.add_patch(rect)
+                    
+                    # Add label with improved positioning
+                    label = f"{class_name} ({confidence:.2f})"
+                    label_y = max(10, y - 5)  # Ensure label is visible
+                    ax.text(x, label_y, label, fontsize=8, color=color, 
+                           bbox=dict(boxstyle="round,pad=0.3", facecolor='white', alpha=0.8))
         
         # Add overall title
         fig.suptitle(f"Detection Comparison: {os.path.basename(image_path)}", 

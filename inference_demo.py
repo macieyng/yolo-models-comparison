@@ -28,28 +28,50 @@ def create_sample_images():
         from PIL import Image, ImageDraw
         import random
         
-        # Create 5 sample images with different content
+        # Create 5 sample images with hot dog-like content
         for i in range(5):
-            # Create a blank image
-            img = Image.new('RGB', (640, 480), color='lightblue')
+            # Create a blank image with varied backgrounds
+            bg_colors = ['lightblue', 'lightgray', 'white', 'lightcyan', 'lightyellow']
+            img = Image.new('RGB', (640, 480), color=bg_colors[i % len(bg_colors)])
             draw = ImageDraw.Draw(img)
             
-            # Add some simple shapes to simulate objects
-            for j in range(random.randint(1, 4)):
-                # Random rectangle
+            # Add some hot dog-like shapes and food items
+            for j in range(random.randint(1, 3)):
+                # Create elongated rectangles that look like hot dogs
                 x1 = random.randint(50, 400)
                 y1 = random.randint(50, 300)
-                x2 = x1 + random.randint(50, 150)
-                y2 = y1 + random.randint(50, 150)
                 
-                colors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple']
-                color = random.choice(colors)
+                # Make hot dog-like dimensions (longer than wide)
+                width = random.randint(80, 200)
+                height = random.randint(30, 60)
+                x2 = x1 + width
+                y2 = y1 + height
                 
-                draw.rectangle([x1, y1, x2, y2], outline=color, width=3)
-                draw.text((x1, y1-20), f"Object {j+1}", fill=color)
+                # Hot dog colors
+                hot_dog_colors = ['brown', 'darkred', 'orange', 'sienna']
+                color = random.choice(hot_dog_colors)
+                
+                # Draw main shape
+                draw.rectangle([x1, y1, x2, y2], outline=color, fill=color, width=2)
+                
+                # Add some mustard/ketchup on top
+                condiment_colors = ['yellow', 'red', 'darkgreen']
+                condiment_color = random.choice(condiment_colors)
+                draw.line([x1+10, y1+height//2, x2-10, y1+height//2], fill=condiment_color, width=3)
+                
+                # Label it
+                draw.text((x1, y1-25), f"Food Item {j+1}", fill='black')
+            
+            # Add some background objects
+            bg_objects = ['plate', 'table', 'background']
+            for k in range(random.randint(0, 2)):
+                x = random.randint(100, 500)
+                y = random.randint(100, 400)
+                draw.ellipse([x, y, x+80, y+50], outline='gray', width=2)
+                draw.text((x, y-15), bg_objects[k % len(bg_objects)], fill='gray')
             
             # Add image title
-            draw.text((10, 10), f"Sample Image {i+1}", fill='black')
+            draw.text((10, 10), f"Sample Image {i+1} - Food Scene", fill='black')
             
             # Save image
             img.save(os.path.join(sample_dir, f"sample_{i+1:02d}.jpg"))
